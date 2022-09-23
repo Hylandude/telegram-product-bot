@@ -1,7 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { TelegramService } from './telegram.service';
-import { CreateTelegramDto } from './dto/create-telegram.dto';
-import { UpdateTelegramDto } from './dto/update-telegram.dto';
+import { CreateTelegramDto, UpdateTelegramDto, QueryTelegramDto } from './dto';
 
 @Controller('telegram')
 export class TelegramController {
@@ -13,8 +12,8 @@ export class TelegramController {
   }
 
   @Get()
-  findAll() {
-    return this.telegramService.findAll();
+  findAll(@Query() queryTelegramDto:QueryTelegramDto ) {
+    return this.telegramService.findAll(queryTelegramDto);
   }
 
   @Get(':id')
