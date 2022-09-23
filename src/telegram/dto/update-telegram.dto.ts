@@ -1,4 +1,14 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateTelegramDto } from './create-telegram.dto';
+import {IsOptional,IsString} from 'class-validator';
+export class UpdateTelegramDto {
+    @IsOptional()
+    @IsString()
+    username?: string
 
-export class UpdateTelegramDto extends PartialType(CreateTelegramDto) {}
+    @IsOptional()
+    @IsString()
+    token?:    string
+
+    @IsOptional()
+    @IsString()
+    bot_id?:   string
+}

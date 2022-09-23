@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CreateTelegramDto } from './dto/create-telegram.dto';
-import { UpdateTelegramDto } from './dto/update-telegram.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateTelegramDto, UpdateTelegramDto } from './dto';
 @Injectable()
 export class TelegramService {
   create(createTelegramDto: CreateTelegramDto) {
