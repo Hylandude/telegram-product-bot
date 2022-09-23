@@ -47,7 +47,6 @@ export class TelegramService {
         resource: telegrams
       }
     }catch(e){
-      console.log(e);
       return {
         success: false,
         error: e
