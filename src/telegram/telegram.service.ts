@@ -18,9 +18,6 @@ export class TelegramService {
         resource: telegram
       }
     }catch(e){
-      if(e instanceof PrismaClientKnownRequestError && e.code == "P2002"){
-        throw new ForbiddenException('Duplicate Telegram, phone number must be unique')
-      }
       return {
         success: false,
         error: e

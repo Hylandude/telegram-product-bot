@@ -1,8 +1,5 @@
 import {IsOptional,IsNumber,IsString, IsUrl} from 'class-validator';
 export class UpdateProductDto {
-    @IsOptional()
-    @IsNumber()
-    user_id?:     number;
 
     @IsOptional()
     @IsNumber()

@@ -51,7 +51,6 @@ export class UserService {
         resource: users
       }
     }catch(e){
-      console.log(e);
       return {
         success: false,
         error: e
