@@ -4,8 +4,35 @@ import { CreateProductDto, UpdateProductDto } from './dto';
 
 @Injectable()
 export class ProductService {
-  create(CreateProductDto: CreateProductDto) {
-    return 'This action adds a new product';
+
+  constructor(private prisma:PrismaService){}
+
+  async create(dto: CreateProductDto) {
+
+    if(dto.price < 0){
+      return {
+        success: false,
+        error: "Price cannot be negative"
+      }
+    }
+    let user = await this.prisma.user.findFirst({
+      where:{user_id: dto.user_id}
+    });
+    if(!user){
+      return {
+        success: false,
+        error: "Specified user does not exist"
+      }
+    }
+
+    let product = await this.prisma.product.create({
+      data: dto
+    });
+
+    return {
+      success: true,
+      resource: product
+    }
   }
 
   findAll() {
@@ -16,7 +43,7 @@ export class ProductService {
     return `This action returns a #${id} product`;
   }
 
-  update(id: number, UpdateProductDto: UpdateProductDto) {
+  update(id: number, dto: UpdateProductDto) {
     return `This action updates a #${id} product`;
   }
 
