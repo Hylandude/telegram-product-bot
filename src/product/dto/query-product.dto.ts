@@ -1,8 +1,7 @@
 import {IsOptional,IsNumber,IsString} from 'class-validator';
 export class QueryProductDto {
     @IsOptional()
-    @IsNumber()
-    user_id?:     number;
+    user_id?:     string;
 
     @IsOptional()
     min_price?:   string;

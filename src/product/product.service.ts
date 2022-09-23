@@ -60,6 +60,9 @@ export class ProductService {
       if(dto.min_price && dto.max_price){
         product_query.where.price = {lte: +dto.max_price, gte:+dto.min_price}
       }
+      if(dto.user_id){
+        product_query.where.user_id = +dto.user_id
+      }
       let products = await this.prisma.product.findMany(product_query);
   
       return{
