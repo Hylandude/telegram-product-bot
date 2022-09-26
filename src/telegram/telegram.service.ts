@@ -5,13 +5,15 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { env } from 'process';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTelegramDto, UpdateTelegramDto, QueryTelegramDto} from './dto';
+import { TelegramCommandService } from './telegram-command.service';
 
 @Injectable()
 export class TelegramService {
 
   constructor(
     private prisma:PrismaService, 
-    private httpService: HttpService){}
+    private httpService: HttpService,
+    private commands:TelegramCommandService){}
 
   async sendMessage(text:string, chat_id:string, token:string){
     let telegram_message = {
@@ -27,6 +29,7 @@ export class TelegramService {
     let command = message.text.split(" ")
     let command_regex:RegExp;
     let error_message:string;
+    let command_name:string;
     switch (command[0]) {
       case "/start":
         let message_text = `Hola ${user.name}!\n Usa alguno de los comandos en el menu para empezar.`;
@@ -34,17 +37,30 @@ export class TelegramService {
         return;
     
       case "/buscar":
-        command_regex = new RegExp("\/buscar <.*>", "gus");
+        command_regex = new RegExp("\/buscar <[^>]*>", "gus");
         error_message = "Sintaxis invalida, debe ser '/buscar <producto>' incluyendo <>";
+        command_name = "search";
         break;
 
       case "/suscribir":
-        command_regex = new RegExp("\/suscribir <.*> <.*>", "gus");
+        command_regex = new RegExp("\/suscribir <[^>]*> <[.0-9^>]*>", "gus");
         error_message = "Sintaxis invalida, debe ser '/suscribir <producto> <precio>' incluyendo <>";
+        command_name = "subscribe";
         break;
     }
     if(message.text.match(command_regex)){
-      console.log("COMMAND MATCH")
+      let command_params = message.text.match(/<[^>]*>/gm);
+      command_params = command_params.map(param => param.slice(1,param.length-1));
+      console.log(command_params);
+      let command_result = await this.commands[command_name](command_params);
+      console.log(command_result);
+      if(command_result.success){
+        console.log("COMMAND SUCCESS");
+        this.sendMessage(command_result.resource, user.phone_number, telegram.token);
+      }else{
+        console.log("COMMAND FAILED");
+        this.sendMessage(command_result.error, user.phone_number, telegram.token);
+      }
     }else{
       this.sendMessage(error_message, user.phone_number, telegram.token);
     }
@@ -84,7 +100,7 @@ export class TelegramService {
       user = await this.prisma.user.create({
         data:{
           phone_number: user_number,
-          name: data.message.from.username
+          name: data.message.from.username ? data.message.from.username : data.message.from.first_name
         }
       });
     }
