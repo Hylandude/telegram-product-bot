@@ -1,5 +1,5 @@
 import { Telegram, User } from '.prisma/client';
-import { HttpService, HttpModule } from '@nestjs/axios';
+import { HttpService } from '@nestjs/axios';
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { env } from 'process';
@@ -25,17 +25,28 @@ export class TelegramService {
   async processCommands(telegram:Telegram, user:User, message){
     console.log("COMMAND")
     let command = message.text.split(" ")
+    let command_regex:RegExp;
+    let error_message:string;
     switch (command[0]) {
       case "/start":
         let message_text = `Hola ${user.name}!\n Usa alguno de los comandos en el menu para empezar.`;
         this.sendMessage(message_text, user.phone_number, telegram.token);
-        break;
+        return;
     
       case "/buscar":
+        command_regex = new RegExp("\/buscar <.*>", "gus");
+        error_message = "Sintaxis invalida, debe ser '/buscar <producto>' incluyendo <>";
         break;
 
       case "/suscribir":
+        command_regex = new RegExp("\/suscribir <.*> <.*>", "gus");
+        error_message = "Sintaxis invalida, debe ser '/suscribir <producto> <precio>' incluyendo <>";
         break;
+    }
+    if(message.text.match(command_regex)){
+      console.log("COMMAND MATCH")
+    }else{
+      this.sendMessage(error_message, user.phone_number, telegram.token);
     }
   }
 
