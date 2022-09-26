@@ -1,7 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto, UpdateUserDto, QueryUserDto } from './dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { query } from 'express';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 @Injectable()
 export class UserService {

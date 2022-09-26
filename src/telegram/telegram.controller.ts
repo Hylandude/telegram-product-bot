@@ -1,10 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Headers } from '@nestjs/common';
 import { TelegramService } from './telegram.service';
-import { CreateTelegramDto, UpdateTelegramDto, QueryTelegramDto } from './dto';
+import { CreateTelegramDto, UpdateTelegramDto, QueryTelegramDto} from './dto';
 
 @Controller('telegram')
 export class TelegramController {
   constructor(private readonly telegramService: TelegramService) {}
+
+  //Telegram Webhook
+  @Post('apiUpdate/:bot_username')
+  getUpdate(@Body() data:any, @Headers() headers:any, bot_username:string){
+    return this.telegramService.getApiUpdate(data, headers, bot_username)
+  }
 
   @Post()
   create(@Body() createTelegramDto: CreateTelegramDto) {
