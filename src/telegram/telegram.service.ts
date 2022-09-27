@@ -24,6 +24,15 @@ export class TelegramService {
     this.httpService.axiosRef.post(telegram_api_url, telegram_message)
   }
 
+  async sendMedia(image_url:string, chat_id:string, token:string){
+    let telegram_message = {
+      chat_id: chat_id,
+      photo: image_url,
+    }
+    let telegram_api_url = "https://api.telegram.org/bot"+token+"/sendPhoto";
+    this.httpService.axiosRef.post(telegram_api_url, telegram_message)
+  }
+
   async processCommands(telegram:Telegram, user:User, message){
     console.log("COMMAND")
     let command = message.text.split(" ")
@@ -56,7 +65,8 @@ export class TelegramService {
       console.log(command_result);
       if(command_result.success){
         console.log("COMMAND SUCCESS");
-        this.sendMessage(command_result.resource, user.phone_number, telegram.token);
+        this.sendMessage(command_result.resource.message, user.phone_number, telegram.token);
+        this.sendMedia(command_result.resource.mercado_product.image_url, user.phone_number, telegram.token);
       }else{
         console.log("COMMAND FAILED");
         this.sendMessage(command_result.error, user.phone_number, telegram.token);

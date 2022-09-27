@@ -35,3 +35,10 @@ model Product {
   product_url   String
   provider      String
 }
+
+model MercadoLibre {
+  mercadolibre_id Int @id @default(autoincrement())
+  app_id String @unique
+  access_token String?
+  refresh_token String?
+}
