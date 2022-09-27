@@ -16,35 +16,43 @@ export class TelegramService {
     private commands:TelegramCommandService){}
 
   async sendMessage(text:string, chat_id:string, token:string){
+    //format json
     let telegram_message = {
       chat_id: chat_id,
       text: text,
     }
+    //send data to telegram
     let telegram_api_url = "https://api.telegram.org/bot"+token+"/sendMessage";
     this.httpService.axiosRef.post(telegram_api_url, telegram_message)
   }
 
   async sendMedia(image_url:string, chat_id:string, token:string){
+    //format json
     let telegram_message = {
       chat_id: chat_id,
       photo: image_url,
     }
+    //send data to telegram
     let telegram_api_url = "https://api.telegram.org/bot"+token+"/sendPhoto";
     this.httpService.axiosRef.post(telegram_api_url, telegram_message)
   }
 
   async processCommands(telegram:Telegram, user:User, message){
-    console.log("COMMAND")
+    //get /command from text 
     let command = message.text.split(" ")
     let command_regex:RegExp;
     let error_message:string;
     let command_name:string;
+
+    //Do actions based on command
     switch (command[0]) {
+      //send welcome message
       case "/start":
         let message_text = `Hola ${user.name}!\n Usa alguno de los comandos en el menu para empezar.`;
         this.sendMessage(message_text, user.phone_number, telegram.token);
         return;
-    
+      
+      //set syntax regex and messages for other commands
       case "/buscar":
         command_regex = new RegExp("\/buscar <[^>]*>", "gus");
         error_message = "Sintaxis invalida, debe ser '/buscar <producto>' incluyendo <>";
@@ -57,21 +65,36 @@ export class TelegramService {
         command_name = "subscribe";
         break;
     }
+
+    //check if the message matches the syntax regex
     if(message.text.match(command_regex)){
+
+      //extract command params from text
       let command_params = message.text.match(/<[^>]*>/gm);
       command_params = command_params.map(param => param.slice(1,param.length-1));
-      console.log(command_params);
+
+      //perform command actions
       let command_result = await this.commands[command_name](command_params, user);
       console.log(command_result);
+
       if(command_result.success){
+        //send success message
         console.log("COMMAND SUCCESS");
         this.sendMessage(command_result.resource.message, user.phone_number, telegram.token);
-        this.sendMedia(command_result.resource.mercado_product.image_url, user.phone_number, telegram.token);
+        if(command_result.resource.mercado_product.image_url){
+          this.sendMedia(command_result.resource.mercado_product.image_url, user.phone_number, telegram.token);
+        }
+        if(command_result.resource.amazon_product.image_url){
+          this.sendMedia(command_result.resource.amazon_product.image_url, user.phone_number, telegram.token);
+        }
+        
       }else{
+        //send error message
         console.log("COMMAND FAILED");
         this.sendMessage(command_result.error, user.phone_number, telegram.token);
       }
     }else{
+      //no command match, send syntax clarification
       this.sendMessage(error_message, user.phone_number, telegram.token);
     }
   }

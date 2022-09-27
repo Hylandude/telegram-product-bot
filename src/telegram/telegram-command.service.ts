@@ -12,6 +12,7 @@ export class TelegramCommandService {
         private httpService: HttpService){}
 
     async getMercadoLibreProduct(mercadolibre:MercadoLibre, product_name:string){
+        //request to mercado libre API
         let mercado_options = {
             headers:{Authorization: `Bearer ${mercadolibre.access_token}`},
             params:{
@@ -19,7 +20,8 @@ export class TelegramCommandService {
             }
         }
         let mercado_answer = await this.httpService.axiosRef.get(env.MERCADO_LIBRE_API+"sites/MLM/search", mercado_options);
-        console.log(mercado_answer.data);
+        
+        //return first result if found
         type found_product = {
             name: string,
             description: string,
@@ -41,6 +43,40 @@ export class TelegramCommandService {
         return found_mercado;
     }
 
+    async getAmazonProduct(product_name:string){
+        //request to rainforest api
+        let amazon_options = {
+            params:{
+                api_key: env.RAINFOREST_API_KEY,
+                type: "search",
+                amazon_domain: "amazon.com.mx",
+                search_term: product_name
+            }
+        }
+        let amazon_answer = await this.httpService.axiosRef.get(env.RAINFOREST_API_URL, amazon_options);
+
+        //return first result if found
+        type found_product = {
+            name: string,
+            description: string,
+            image_url: string,
+            product_url: string,
+            price: string
+        }
+        let found_mercado:found_product;
+        if(amazon_answer.data && amazon_answer.data.search_results && amazon_answer.data.search_results[0]){
+            console.log(JSON.stringify(amazon_answer.data.search_results[0]));
+            found_mercado = {
+                name: product_name,
+                description: amazon_answer.data.search_results[0].title,
+                image_url: amazon_answer.data.search_results[0].image,
+                product_url: amazon_answer.data.search_results[0].link,
+                price: amazon_answer.data.search_results[0].price.value
+            };
+        }
+        return found_mercado;
+    }
+
     async search(params:string[], user:User){
         //Check for value in name param
         let product_name:string = params[0]
@@ -53,34 +89,56 @@ export class TelegramCommandService {
 
         //check for mercadolibre api data
         let mercadolibre = await this.prisma.mercadoLibre.findFirst();
-        if(!mercadolibre){
-            return{
+        type found_product = {
+            name: string,
+            description: string,
+            image_url: string,
+            product_url: string,
+            price: string
+        }
+        let found_mercado:found_product;
+        if(mercadolibre){
+            //search in mercado libre
+            found_mercado = await this.getMercadoLibreProduct(mercadolibre, product_name);
+        }
+
+        //search in amazon
+        let found_amazon = await this.getAmazonProduct(product_name);
+
+        //return error if neither product is available
+        if(!found_amazon && !found_mercado){
+            return {
                 success: false,
-                error: "No se encontraron datos de mercado libre"
+                error: "No pude encontrar el producto, intenta con otro nombre"
             }
         }
 
-        //search in mercado libre
-        let found_mercado = await this.getMercadoLibreProduct(mercadolibre, product_name);
-
-        let message_mercado:string;
-        if(found_mercado){
-            message_mercado =   `Encontré este producto al buscar "${product_name}" en mercado libre
+        //Build message string according to results
+        let message:string;
+        if(found_mercado.product_url){
+            message = `Encontré este producto al buscar "${product_name}" en mercado libre
             Nombre: ${product_name}
             descripcion: ${found_mercado.description}
             precio: ${found_mercado.price}
             url: ${found_mercado.product_url}`
-            return{
-                success: true,
-                resource: {
-                    message: message_mercado,
-                    mercado_product: found_mercado
-                }
-            }
         }else{
-            return{
-                success: false,
-                error: "Producto No encontrado en mercado libre"
+            message = `No pude encontrar "${product_name} en mercadolibre"`
+        }
+        if(found_amazon.product_url){
+            message += `\nEncontré este producto al buscar "${product_name}" en mercado libre
+            Nombre: ${product_name}
+            descripcion: ${found_mercado.description}
+            precio: ${found_mercado.price}
+            url: ${found_mercado.product_url}`
+        }else{
+            message += `\nNo pude encontrar "${product_name} en mercadolibre"`
+        }
+        return{
+            success: true,
+            resource: {
+                message: message,
+                mercado_product: found_mercado,
+                amazon_product: found_amazon
             }
         }
     }
@@ -116,13 +174,22 @@ export class TelegramCommandService {
 
             }
         });
+        this.prisma.product.create({
+            data:{
+                user_id: user.user_id,
+                price: product_price,
+                name: product_name,
+                description: "",
+                image_url: "",
+                product_url: "",
+                provider: "anazon",
+
+            }
+        });
 
         return{
             success: true,
             resource: `Listo! te notificare cuando encuentre un ${product_name} a un precio menor a ${product_price}`
         }
-
-
-        
     }
 }
