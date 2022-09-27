@@ -68,7 +68,7 @@ export class TelegramService {
 
     //check if the message matches the syntax regex
     if(message.text.match(command_regex)){
-
+      console.log("COMMAND")
       //extract command params from text
       let command_params = message.text.match(/<[^>]*>/gm);
       command_params = command_params.map(param => param.slice(1,param.length-1));

@@ -145,6 +145,7 @@ export class TelegramCommandService {
 
     async subscribe (params:string[], user:User) {
         //Check for value in name param
+        console.log("SUBSCRIBE");
         let product_name:string = params[0];
         if(!product_name){
             return{
@@ -162,7 +163,7 @@ export class TelegramCommandService {
             }
         }
 
-        this.prisma.product.create({
+        await this.prisma.product.create({
             data:{
                 user_id: user.user_id,
                 price: product_price,
@@ -174,7 +175,7 @@ export class TelegramCommandService {
 
             }
         });
-        this.prisma.product.create({
+        await this.prisma.product.create({
             data:{
                 user_id: user.user_id,
                 price: product_price,
@@ -182,14 +183,16 @@ export class TelegramCommandService {
                 description: "",
                 image_url: "",
                 product_url: "",
-                provider: "anazon",
+                provider: "amazon",
 
             }
         });
-
+        console.log("PRODUCTS CREATED")
         return{
             success: true,
-            resource: `Listo! te notificare cuando encuentre un ${product_name} a un precio menor a ${product_price}`
+            resource: {
+                message:`Listo! te notificare cuando encuentre un ${product_name} a un precio menor a ${product_price}`
+            }
         }
     }
 }
