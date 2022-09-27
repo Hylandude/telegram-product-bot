@@ -81,10 +81,12 @@ export class TelegramService {
         //send success message
         console.log("COMMAND SUCCESS");
         this.sendMessage(command_result.resource.message, user.phone_number, telegram.token);
-        if(command_result.resource.mercado_product.image_url){
+
+        //send media according to received data
+        if(command_result.resource.mercado_product && command_result.resource.mercado_product.image_url){
           this.sendMedia(command_result.resource.mercado_product.image_url, user.phone_number, telegram.token);
         }
-        if(command_result.resource.amazon_product.image_url){
+        if(command_result.resource.amazon_product && command_result.resource.amazon_product.image_url){
           this.sendMedia(command_result.resource.amazon_product.image_url, user.phone_number, telegram.token);
         }
         
@@ -111,8 +113,6 @@ export class TelegramService {
   }
 
   async getApiUpdate(data:any, headers:any, bot_username:string){
-    console.log(JSON.stringify(data));
-
     //check for secret token
     if(!headers || !headers['x-telegram-bot-api-secret-token'] || headers['x-telegram-bot-api-secret-token'] != env.TELEGRAM_TOKEN){
       throw new ForbiddenException("Invalid token");
@@ -121,7 +121,8 @@ export class TelegramService {
     if(!data.message || !data.message.text) return "Empty message";
 
     //Look up the telegram bot data
-    let telegram = await this.prisma.telegram.findFirst({where:{username: bot_username}})
+    let telegram = await this.prisma.telegram.findFirst({where:{username: bot_username}});
+    console.log(telegram)
     if(!telegram){
       throw new NotFoundException("Telegram bot not found")
     }

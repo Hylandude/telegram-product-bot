@@ -71,7 +71,7 @@ export class TelegramCommandService {
                 description: amazon_answer.data.search_results[0].title,
                 image_url: amazon_answer.data.search_results[0].image,
                 product_url: amazon_answer.data.search_results[0].link,
-                price: amazon_answer.data.search_results[0].price.value
+                price: amazon_answer.data.search_results[0].price ? amazon_answer.data.search_results[0].price.value : "N/A"
             };
         }
         return found_mercado;
@@ -115,23 +115,23 @@ export class TelegramCommandService {
 
         //Build message string according to results
         let message:string;
-        if(found_mercado.product_url){
+        if(found_mercado && found_mercado.product_url){
             message = `Encontré este producto al buscar "${product_name}" en mercado libre
             Nombre: ${product_name}
             descripcion: ${found_mercado.description}
             precio: ${found_mercado.price}
             url: ${found_mercado.product_url}`
         }else{
-            message = `No pude encontrar "${product_name} en mercadolibre"`
+            message = `No pude encontrar "${product_name}" en mercadolibre`
         }
-        if(found_amazon.product_url){
-            message += `\nEncontré este producto al buscar "${product_name}" en mercado libre
+        if(found_amazon && found_amazon.product_url){
+            message += `\nEncontré este producto al buscar "${product_name}" en amazon
             Nombre: ${product_name}
-            descripcion: ${found_mercado.description}
-            precio: ${found_mercado.price}
-            url: ${found_mercado.product_url}`
+            descripcion: ${found_amazon.description}
+            precio: ${found_amazon.price}
+            url: ${found_amazon.product_url}`
         }else{
-            message += `\nNo pude encontrar "${product_name} en mercadolibre"`
+            message += `\nNo pude encontrar "${product_name}" en amazon`
         }
         return{
             success: true,
