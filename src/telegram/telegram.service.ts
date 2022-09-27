@@ -61,7 +61,7 @@ export class TelegramService {
       let command_params = message.text.match(/<[^>]*>/gm);
       command_params = command_params.map(param => param.slice(1,param.length-1));
       console.log(command_params);
-      let command_result = await this.commands[command_name](command_params);
+      let command_result = await this.commands[command_name](command_params, user);
       console.log(command_result);
       if(command_result.success){
         console.log("COMMAND SUCCESS");

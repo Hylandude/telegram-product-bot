@@ -2,11 +2,14 @@ import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/commo
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto, QueryProductDto, UpdateProductDto } from './dto';
+import { HttpService } from '@nestjs/axios';
 
 @Injectable()
 export class ProductService {
 
-  constructor(private prisma:PrismaService){}
+  constructor(
+    private prisma:PrismaService,
+    httpService:HttpService){}
 
   async create(dto: CreateProductDto) {
 

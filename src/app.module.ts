@@ -5,9 +5,16 @@ import { ProductModule } from './product/product.module';
 import { PrismaService } from './prisma/prisma.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { MercadolibreModule } from './mercadolibre/mercadolibre.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
-  imports: [ProductModule, UserModule, TelegramModule, PrismaModule, MercadolibreModule],
+  imports: [
+    ProductModule,
+    UserModule,
+    TelegramModule,
+    PrismaModule,
+    MercadolibreModule
+  ],
   providers: [PrismaService]
 })
 export class AppModule {}

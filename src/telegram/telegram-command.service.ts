@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { PrismaService } from '../prisma/prisma.service';
 import { env } from 'process';
+import { MercadoLibre, User } from '@prisma/client';
 
 @Injectable()
 export class TelegramCommandService {
@@ -10,24 +11,7 @@ export class TelegramCommandService {
         private prisma:PrismaService, 
         private httpService: HttpService){}
 
-    async search(params:string[]){
-        //Check for value in name param
-        let product_name:string = params[0]
-        if(!product_name){
-            return{
-                success: false,
-                error: "<producto> no puede ser vacio"
-            }
-        }
-
-        let mercadolibre = await this.prisma.mercadoLibre.findFirst();
-        if(!mercadolibre){
-            return{
-                success: false,
-                error: "No se encontraron datos de mercado libre"
-            }
-        }
-
+    async getMercadoLibreProduct(mercadolibre:MercadoLibre, product_name:string){
         let mercado_options = {
             headers:{Authorization: `Bearer ${mercadolibre.access_token}`},
             params:{
@@ -54,9 +38,34 @@ export class TelegramCommandService {
                 price: mercado_answer.data.results[0].price
             };
         }
+        return found_mercado;
+    }
+
+    async search(params:string[], user:User){
+        //Check for value in name param
+        let product_name:string = params[0]
+        if(!product_name){
+            return{
+                success: false,
+                error: "<producto> no puede ser vacio"
+            }
+        }
+
+        //check for mercadolibre api data
+        let mercadolibre = await this.prisma.mercadoLibre.findFirst();
+        if(!mercadolibre){
+            return{
+                success: false,
+                error: "No se encontraron datos de mercado libre"
+            }
+        }
+
+        //search in mercado libre
+        let found_mercado = await this.getMercadoLibreProduct(mercadolibre, product_name);
+
         let message_mercado:string;
         if(found_mercado){
-            message_mercado =   `Encontré este producto al buscar ${product_name}
+            message_mercado =   `Encontré este producto al buscar "${product_name}" en mercado libre
             Nombre: ${product_name}
             descripcion: ${found_mercado.description}
             precio: ${found_mercado.price}
@@ -74,11 +83,9 @@ export class TelegramCommandService {
                 error: "Producto No encontrado en mercado libre"
             }
         }
-
-        
     }
 
-    async subscribe (params:string[]) {
+    async subscribe (params:string[], user:User) {
         //Check for value in name param
         let product_name:string = params[0];
         if(!product_name){
@@ -96,9 +103,23 @@ export class TelegramCommandService {
                 error: "<precio> no puede ser vacio"
             }
         }
+
+        this.prisma.product.create({
+            data:{
+                user_id: user.user_id,
+                price: product_price,
+                name: product_name,
+                description: "",
+                image_url: "",
+                product_url: "",
+                provider: "mercadolibre",
+
+            }
+        });
+
         return{
             success: true,
-            resource: "Buscando un: "+product_name+" con precio menor a "+product_price
+            resource: `Listo! te notificare cuando encuentre un ${product_name} a un precio menor a ${product_price}`
         }
 
 
