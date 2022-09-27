@@ -43,12 +43,13 @@ POST /telegram
 
 ## Known issues
 
-* Bot will always show the first result regardless of how accurate to user provided search is.
-* MercadoLibre API does not refresh OAuthToken automatically
+* Bot will always show the first result regardless of how accurate to user provided search it is.
+* MercadoLibre API does not refresh OAuthToken automatically.
 * MercadoLibre API requires a production callback url, in development mode no results are provided unless a new app is created in the MercadoLibre dev dashboard for each created port fowarding url.
-* Amazon products that are not available show as having "N/A" on price
-* Unit tests are still in development
-* `docker-comse.yml` file is hardcoded
+* Amazon products that are not available show as having "N/A" on price.
+* Unit tests are still in development.
+* `docker-comse.yml` file is hardcoded.
+* There is no security protecting the endpoints and tokens are saved as plaintext within the database.
 
 ## Contact
 
